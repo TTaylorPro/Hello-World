@@ -9,6 +9,7 @@ public class Lane {
     private Enemy target;
     private int enemyPosition;
     private int enemyCount;
+    private int laneOffset;
     /*Enemies will exist in a queue and be removed when they collide with something
       Only the farthest enemy from origin in a given lane can possibly collide or reach the other side
       Bullets work in a similar way
@@ -18,7 +19,7 @@ public class Lane {
     Lane nextLane;
 
     public Lane(){
-
+        if(previousLane!=null)laneOffset=previousLane.getLaneOffset()+1;
     }
 
     public void addPlayer(){
@@ -33,7 +34,9 @@ public class Lane {
         target=new Enemy();
         enemyCount=1;
     }
-
+    public void popEnemy(){
+        enemyCount=0;
+    }
     public void movePlayerUp(){}
     public void movePlayerDown(){}
 
@@ -43,4 +46,7 @@ public class Lane {
     public int getEnemyCount(){
         return enemyCount;
     }
+    public int getEnemyPosition(){return target.getPosition();}
+    public void decrementEnemyPosition(int n){target.decrementPosition(n);}
+    public int getLaneOffset(){return laneOffset;}
 }
