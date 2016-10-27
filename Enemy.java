@@ -2,18 +2,20 @@ package com.example.travistaylor.shootertargets;
 
 /**
  * Created by Travis Taylor on 9/29/2016.
- *Test
  */
 public class Enemy {
-    int health;
-    int speed;
-    int damage;
-    float[]color;
+    private int health;
+    private int speed;
+    private int damage;
+    private float[]color;
+    private int position;
 
     public Enemy(){
         health=1;
         speed=0;
         damage=0;
+        position=0;
+
     }
 
     public void changeHealth(int n){
@@ -39,4 +41,8 @@ public class Enemy {
     public int getSpeed(){
         return speed;
     }
+
+    public void decrementPosition(int n){position+=n;}
+
+    public int getPosition(){return position;}
 }
