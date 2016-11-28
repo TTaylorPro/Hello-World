@@ -33,14 +33,18 @@ public class CanvasActivity extends Activity {
             private int mCanvasHeight = 1;
             private int mCanvasWidth = 1;
             private long mLastTime;
+            private int targetLag;
+            private int playerLag;
             Paint paint=new Paint();
 
             public ShooterThread(SurfaceHolder surfaceHolder) {
                 mSurfaceHolder = surfaceHolder;
                 mLane = new Lane();
                 mLane.addPlayer();
-                mLane.addEnemy();
                 mLastTime = System.currentTimeMillis();
+                playerLag=0;
+                targetLag=0;
+
             }
 
             public void setRunning(boolean b) {
@@ -58,15 +62,51 @@ public class CanvasActivity extends Activity {
 
             }
 
+            public void addBullet(){
+                synchronized (mSurfaceHolder) {
+                    if (playerLag == 0) {
+                        mLane.addBullet();
+                        playerLag+=mCanvasWidth/8;
+                    }
+                }
+            }
+
             private void updatePhysics(){
                 long now = System.currentTimeMillis();
                 if (mLastTime > now) return;
                 double elapsed = (now - mLastTime) / 1000.0;
 
-                if(mLane.getEnemyCount()<=0)mLane.addEnemy();
+                if(mLane.getBulletCount()>0&&mLane.getEnemyCount()>0){
+                    if((((mCanvasWidth/8)*2)+mLane.getBulletPosition(0))>=(((mCanvasWidth/8)*7)-mLane.getEnemyPosition(0))){
+                        mLane.popBullet();
+                        mLane.popEnemy();
+                    }
+                }
 
-                mLane.decrementEnemyPosition((int)elapsed+8);
-                if(((mCanvasWidth/8)*7)-mLane.getEnemyPosition()<0)mLane.popEnemy();
+                if(mLane.getEnemyCount()>0) {
+                    mLane.decrementEnemyPosition((int) elapsed + 8);
+                }
+
+                if(mLane.getEnemyCount()>0){if((((mCanvasWidth / 8) * 7) - mLane.getEnemyPosition(0)<(mCanvasWidth / 8))&&mLane.getPlayer()!=null)mLane.popEnemy();}
+
+                if(mLane.getEnemyCount()>0) {if (((mCanvasWidth / 8) * 7) - mLane.getEnemyPosition(0) < 0) mLane.popEnemy();}
+
+                if(targetLag>0)targetLag-=((int)elapsed+8);
+
+                if(targetLag==0){
+                    if(((int)(Math.random()*7))+1==7){
+                        mLane.addEnemy();
+
+                    }
+                    targetLag+=mCanvasWidth/8;
+                }
+
+                if(mLane.getBulletCount()>0) {
+                    mLane.incrementBulletPosition((int) elapsed + 8);
+                    if (((mCanvasWidth / 8) * 7) - mLane.getBulletPosition(0) < 0) mLane.popBullet();
+                }
+
+                if(playerLag>0)playerLag-=((int)elapsed+8);
 
                 mLastTime = now;
             }
@@ -79,7 +119,12 @@ public class CanvasActivity extends Activity {
                 if(mLane.getPlayer()!=null)canvas.drawRect(0,mCanvasHeight/3* mLane.getLaneOffset(),mCanvasWidth/8,mCanvasHeight/3,paint);
                 paint.setColor(Color.YELLOW);
                 if(mLane.getEnemyCount()>0){
-                    canvas.drawRect(((mCanvasWidth/8)*7)-mLane.getEnemyPosition(),mCanvasHeight/3* mLane.getLaneOffset(),((mCanvasWidth/8)*8)-mLane.getEnemyPosition(),mCanvasHeight/3,paint);
+
+                    for(int i=0;i<mLane.getEnemyCount();i++)canvas.drawRect(((mCanvasWidth/8)*7)-mLane.getEnemyPosition(i),mCanvasHeight/3* mLane.getLaneOffset(),((mCanvasWidth/8)*8)-mLane.getEnemyPosition(i),mCanvasHeight/3* (mLane.getLaneOffset()+1),paint);
+                }
+                paint.setColor(Color.BLUE);
+                if(mLane.getBulletCount()>0){
+                    for(int i=0;i<mLane.getBulletCount();i++)canvas.drawRect((mCanvasWidth/8)+mLane.getBulletPosition(i),mCanvasHeight/3* mLane.getLaneOffset(), ((mCanvasWidth/8)*2)+mLane.getBulletPosition(i),mCanvasHeight/3* (mLane.getLaneOffset()+1),paint);
                 }
             }
 
@@ -115,10 +160,12 @@ public class CanvasActivity extends Activity {
 
             }
 
-            /*@Override
+            @Override
             public boolean onTouchEvent(MotionEvent e) {
+                ex.addBullet();
 
-            }*/
+                return true;
+            }
 
             @Override
             public void surfaceCreated(SurfaceHolder surfaceHolder) {
