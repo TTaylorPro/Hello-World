@@ -7,6 +7,7 @@ public class Player {
     private int health;
     private int speed;
     private int damage;
+    private int bulletSpeed;
     private int firerate;
     private float[]color;
 
@@ -14,6 +15,8 @@ public class Player {
         health=1;
         speed=0;
         damage=0;
+        firerate=0;
+        bulletSpeed=0;
     }
 
     public void changeHealth(int n){
